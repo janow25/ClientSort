@@ -138,7 +138,7 @@ public class Config {
 
         // Sort order options
 
-        public static final String sortOrderStrDefault = SortOrder.CREATIVE.name;
+        public static final String sortOrderStrDefault = SortOrder.ROWS.name;
         public String sortOrderStr = sortOrderStrDefault;
         public static Validator<String> sortOrderStrValidator = (val) -> val != null
                 && SortOrder.SORT_ORDERS.containsKey(val) ? val : sortOrderStrDefault;

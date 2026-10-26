@@ -31,6 +31,7 @@ import dev.terminalmc.clientsort.client.inventory.operator.client.ClientCreative
 import dev.terminalmc.clientsort.client.inventory.operator.client.ClientOperator;
 import dev.terminalmc.clientsort.client.inventory.operator.client.ClientSurvivalOperator;
 import dev.terminalmc.clientsort.client.inventory.operator.server.ServerOperator;
+import dev.terminalmc.clientsort.client.order.SortContext;
 import dev.terminalmc.clientsort.client.order.SortOrder;
 import dev.terminalmc.clientsort.client.platform.services.ClientPlatformServices;
 import dev.terminalmc.clientsort.client.util.PolicyManager;
@@ -472,5 +473,30 @@ public abstract class SingleUseOperator {
                         ItemStack.isSameItem(a, b)
                                 && (alwaysMatchByType || typeMatchItems.contains(a.getItem()))
                 );
+    }
+
+    /**
+     * Creates a {@link SortContext} for the current operation scope.
+     */
+    protected SortContext createSortContext() {
+        return new SortContext(Minecraft.getInstance().level, countScopeColumns());
+    }
+
+    /**
+     * Determines the row width of the origin scope by counting the leading slots that share the
+     * vertical position of the first slot. Assumes slots are ordered row by row.
+     *
+     * @return the row width, or 0 if the scope is empty.
+     */
+    private int countScopeColumns() {
+        if (originScopeSlots.length == 0) return 0;
+
+        int y = originScopeSlots[0].y;
+        int columns = 0;
+        while (columns < originScopeSlots.length && originScopeSlots[columns].y == y) {
+            columns++;
+        }
+
+        return columns;
     }
 }

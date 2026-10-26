@@ -21,7 +21,6 @@ import dev.terminalmc.clientsort.client.inventory.operator.SingleUseOperator;
 import dev.terminalmc.clientsort.client.order.SortContext;
 import dev.terminalmc.clientsort.client.order.SortOrder;
 import dev.terminalmc.clientsort.client.util.SoundManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 
@@ -58,7 +57,7 @@ public abstract class ClientOperator extends SingleUseOperator {
         key = sortOrder.sort(
                 key,
                 originScopeStacks,
-                new SortContext(Minecraft.getInstance().level)
+                createSortContext()
         );
 
         // Prepare sounds
