@@ -308,30 +308,27 @@ public abstract class SortOrder {
                     }
                 }
 
-                // Without a known grid, or if the groups do not fit with row padding,
-                // fall back to a tightly packed creative order
+                // Without a known grid, fall back to a tightly packed creative order
                 int columns = context.columns;
                 if (columns <= 0 || sorted.length % columns != 0) {
                     return sorted;
                 }
-                int rowsNeeded = 0;
-                for (List<Integer> group : groups.values()) {
-                    rowsNeeded += (group.size() + columns - 1) / columns;
-                }
-                if (rowsNeeded > sorted.length / columns) {
-                    return sorted;
-                }
 
-                // Place each group starting at the beginning of a row
+                // Place each group starting at the beginning of a row, as long as the remaining
+                // groups still fit afterwards. Otherwise, pack tightly to avoid losing items.
                 int[] result = new int[sorted.length];
                 Arrays.fill(result, -1);
+                int remainingItems = sorted.length - empty.size();
                 int pos = 0;
                 for (List<Integer> group : groups.values()) {
+                    int alignedPos = (pos + columns - 1) / columns * columns;
+                    if (sorted.length - alignedPos >= remainingItems) {
+                        pos = alignedPos;
+                    }
                     for (int id : group) {
                         result[pos++] = id;
                     }
-                    // Advance to the start of the next row
-                    pos = (pos + columns - 1) / columns * columns;
+                    remainingItems -= group.size();
                 }
 
                 // Fill the remaining gaps with empty slots
