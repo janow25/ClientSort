@@ -32,7 +32,6 @@ import dev.terminalmc.clientsort.network.payload.StackFillPayload;
 import dev.terminalmc.clientsort.network.payload.TransferPayload;
 import dev.terminalmc.clientsort.util.inject.ISlot;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
@@ -229,7 +228,7 @@ public class ServerOperator extends SingleUseOperator {
         sortedIds = sortOrder.sort(
                 sortedIds,
                 originScopeStacks,
-                new SortContext(Minecraft.getInstance().level)
+                createSortContext()
         );
 
         // Translate the key into a series of swap instructions

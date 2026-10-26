@@ -204,6 +204,7 @@
   "sortOrder.clientsort.none": "None",
   "sortOrder.clientsort.alphabet": "Alphabet",
   "sortOrder.clientsort.creative": "Creative",
+  "sortOrder.clientsort.rows": "Rows",
   "sortOrder.clientsort.quantity": "Quantity",
   "sortOrder.clientsort.rawId": "Raw ID",
 

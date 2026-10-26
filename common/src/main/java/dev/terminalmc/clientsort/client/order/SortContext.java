@@ -31,7 +31,13 @@ public class SortContext {
      */
     Level level;
 
-    public SortContext(Level level) {
+    /**
+     * The number of slots per visual row in the scope being sorted, or 0 if unknown.
+     */
+    int columns;
+
+    public SortContext(Level level, int columns) {
         this.level = level;
+        this.columns = columns;
     }
 }

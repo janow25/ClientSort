@@ -28,7 +28,10 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
@@ -70,6 +73,12 @@ public abstract class SortOrder {
      * Slots: creative inventory item search order
      */
     public static final SortOrder CREATIVE;
+    /**
+     * Groups: item type, in creative inventory order, each starting on a new row
+     * <p>
+     * Slots: default stack comparison within a group
+     */
+    public static final SortOrder ROWS;
     /**
      * Groups: total item quantity (desc)
      * <p>
@@ -278,6 +287,62 @@ public abstract class SortOrder {
 
                 // Sort by reference array
                 SortOrder.sortByValues(slotIds, sortValues, stacks, context);
+                return slotIds;
+            }
+        });
+
+        ROWS = register(new SortOrder("rows") {
+            @Override
+            public int[] sort(int[] slotIds, ItemStack[] stacks, SortContext context) {
+                // Sort by creative order so that groups and their contents are ordered
+                int[] sorted = CREATIVE.sort(slotIds, stacks, context);
+
+                // Group slot IDs by item type, preserving sorted order
+                Map<Item, List<Integer>> groups = new LinkedHashMap<>();
+                List<Integer> empty = new ArrayList<>();
+                for (int id : sorted) {
+                    if (stacks[id].isEmpty()) {
+                        empty.add(id);
+                    } else {
+                        groups.computeIfAbsent(stacks[id].getItem(), k -> new ArrayList<>()).add(id);
+                    }
+                }
+
+                // Without a known grid, or if the groups do not fit with row padding,
+                // fall back to a tightly packed creative order
+                int columns = context.columns;
+                if (columns <= 0 || sorted.length % columns != 0) {
+                    return sorted;
+                }
+                int rowsNeeded = 0;
+                for (List<Integer> group : groups.values()) {
+                    rowsNeeded += (group.size() + columns - 1) / columns;
+                }
+                if (rowsNeeded > sorted.length / columns) {
+                    return sorted;
+                }
+
+                // Place each group starting at the beginning of a row
+                int[] result = new int[sorted.length];
+                Arrays.fill(result, -1);
+                int pos = 0;
+                for (List<Integer> group : groups.values()) {
+                    for (int id : group) {
+                        result[pos++] = id;
+                    }
+                    // Advance to the start of the next row
+                    pos = (pos + columns - 1) / columns * columns;
+                }
+
+                // Fill the remaining gaps with empty slots
+                int emptyIdx = 0;
+                for (int i = 0; i < result.length; i++) {
+                    if (result[i] == -1) {
+                        result[i] = empty.get(emptyIdx++);
+                    }
+                }
+
+                System.arraycopy(result, 0, slotIds, 0, result.length);
                 return slotIds;
             }
         });
