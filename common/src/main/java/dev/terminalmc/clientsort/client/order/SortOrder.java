@@ -25,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -74,7 +75,8 @@ public abstract class SortOrder {
      */
     public static final SortOrder CREATIVE;
     /**
-     * Groups: item type, in creative inventory order, each starting on a new row
+     * Groups: item family (e.g. logs, planks and sticks), in creative inventory order, each
+     * starting on a new row
      * <p>
      * Slots: default stack comparison within a group
      */
@@ -298,14 +300,30 @@ public abstract class SortOrder {
                 int[] sorted = CREATIVE.sort(slotIds, stacks, context);
 
                 // Group slot IDs by item type, preserving sorted order
-                Map<Item, List<Integer>> groups = new LinkedHashMap<>();
+                Map<Item, List<Integer>> itemGroups = new LinkedHashMap<>();
                 List<Integer> empty = new ArrayList<>();
                 for (int id : sorted) {
                     if (stacks[id].isEmpty()) {
                         empty.add(id);
                     } else {
-                        groups.computeIfAbsent(stacks[id].getItem(), k -> new ArrayList<>()).add(id);
+                        itemGroups.computeIfAbsent(stacks[id].getItem(), k -> new ArrayList<>())
+                                .add(id);
                     }
+                }
+
+                // Combine related item types into families, which share their rows. Sticks are
+                // added last, so that they follow the planks they are made from.
+                Map<Item, String> familyKeys = ItemFamilies.resolve(itemGroups.keySet());
+                Map<String, List<Integer>> groups = new LinkedHashMap<>();
+                for (Map.Entry<Item, List<Integer>> entry : itemGroups.entrySet()) {
+                    if (entry.getKey() == Items.STICK) continue;
+                    groups.computeIfAbsent(familyKeys.get(entry.getKey()), k -> new ArrayList<>())
+                            .addAll(entry.getValue());
+                }
+                List<Integer> sticks = itemGroups.get(Items.STICK);
+                if (sticks != null) {
+                    groups.computeIfAbsent(familyKeys.get(Items.STICK), k -> new ArrayList<>())
+                            .addAll(sticks);
                 }
 
                 // Without a known grid, fall back to a tightly packed creative order
